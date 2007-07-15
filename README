@@ -1,0 +1,12 @@
+This is a mirror of http://www.vim.org/scripts/script.php?script_id=1957
+
+With this plugin you may insert text snippets.  These is used for frequently
+typed text, such as statements in programs, copyrights, timestamps and other.
+This plugin supports several types of snippets: keyword snippets,
+newline snippets, file skeletons, To work with this plugin you need support
+for ruby ('+ruby' compile option and ruby language itself), ERb (embedded ruby
+library for ruby), and imaps.vim plugin (vimscript#244).
+
+Main advantages of this plugin are convenience and flexible way to define
+snippets, "newline" snippets, and file skeletons with embedded ruby.
+
