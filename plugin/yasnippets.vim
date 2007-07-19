@@ -1,6 +1,6 @@
 " Copyright © 2007, Valyaeff Valentin <hhyperr AT gmail DOT com>
 " Yet another plugin for snippets
-"     Version:    2.0 2007.07.18
+"     Version:    2.1 2007.07.20
 "      Author:    Valyaeff Valentin <hhyperr AT gmail DOT com>
 "     License:    GPL
 "
@@ -97,7 +97,7 @@ if !exists("g:yasnippets_nlkey_insert")
 endif
 
 if !exists("g:yasnippets_marker")
-  let g:yasnippets_marker = ';;\*;;'
+  let g:yasnippets_marker = ';@;'
 endif
 
 if !exists("g:yasnippets_file")
@@ -119,14 +119,14 @@ function! Jump()
   endif
   if match(getline('.'), g:yasnippets_marker) == 0
     execute "normal 0v".repeat('l', strlen(substitute(g:yasnippets_marker, '\', '', 'g'))-1)
-    return "\<c-\>\<c-n>gvo\<c-g>"
+    return "\<c-\>\<c-n>gvc"
   endif
   if search(g:yasnippets_marker) != 0
     normal 0
     call search(g:yasnippets_marker, 'c')
     normal v
     call search(g:yasnippets_marker, 'e')
-    return "\<c-\>\<c-n>gvo\<c-g>"
+    return "\<c-\>\<c-n>gvc"
   else
     if s:appended != 1 && g:yasnippets_expandkey_insert != "false"
       return g:yasnippets_expandkey_insert
@@ -189,9 +189,10 @@ function! NLexpand()
   endif
 endfunction
 
-" <<<1 Mappings
+" <<<1 Mappings and syntax
 exec "inoremap ".g:yasnippets_expandkey." <c-r>=Expand()<cr><c-r>=Jump()<cr>"
 exec "inoremap ".g:yasnippets_nlkey." <c-r>=NLexpand()<cr>"
+exec "autocmd Syntax * syntax match Todo display oneline /".g:yasnippets_marker."/"
 
 " <<<1 Read user snippets
 ruby <<END
