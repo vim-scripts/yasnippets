@@ -1,0 +1,271 @@
+*yasnippets.txt*  Plugin for inserting text snippets
+
+				By Valentin Valyaeff
+				  hhyperr@gmain.com
+
+					      *yasnippets* *yasnippets-plugin*
+	Contents:
+
+		Key word snippets..................|keyword-snippets|
+                Newline snippets...................|newline-snippets|
+                File skeletons.......................|file-skeletons|
+                Defining snippets.................|defining-snippets|
+                Defining file skeletons..........|defining-skeletons|
+		Settings........................|yasnippets-settings|
+
+With this plugin you may insert text snippets.  These is used for frequently
+typed text, such as statements in programs, copyrights, timestamps and other.
+This plugin supports several types of snippets:
+	|keyword-snippets|
+	|newline-snippets|
+	|file-skeletons|
+To work with this plugin you need support for ruby (|+ruby| compile option and
+ruby language itself), ERb (embedded ruby library for ruby), and imaps.vim
+plugin.
+
+
+							    *keyword-snippets*
+Keyword snippets are inserting by typing special keyword associated with the
+snippet.  For example if you defined snippet for time stamp, you may type
+"timess" and this word will be immediately substituted with "2007.08.01
+05:05".  See also |defining-snippets| and |snippet-markers| section.
+
+
+							    *newline-snippets*
+New line snippets are inserting when you pressing <Enter> (or other key, see
+|yasnippets-nlkey|).  If current string matches snippet's regular expression
+then this snippet will be inserted in new line.  Some examples below.  Perhaps
+you writing C program, and you type "piss" (preprocessor include snippet).
+Cursor automatically jumps to appropriate position ("*" is current cursor
+position). >
+		#include <*>
+<
+Then you type header name. >
+		#include <stdlib.h*>
+<
+And pressed <Enter>. >
+		#include <stdlib.h>
+		#include <*>
+<
+Now you may type next header name to include.  See |defining-snippets|
+section.
+
+
+							      *file-skeletons*
+You may define file skeletons.  This is templates for new files based on file
+type and file name.  For example every C header must contain these lines: >
+		#ifndef __HEADER_H__
+		#define __HEADER_H__
+		 /* some code */
+		#endif
+<
+"__HEADER_H__" automatically generated on base of file name.  Another case is
+inserting copyrights and license information.  You may define C header
+skeleton which generates preprocessor directives and asks (|skeleton-ask|) for
+inserting copyright and license.  If you use the same code in several
+skeletons, you may put these code into |skeletons-shared| file.  Also if there
+is more than one skeleton for created file, you will be asked for which
+skeleton to use.  See |defining-skeletons| section.
+
+
+							   *defining-snippets*
+All keyword and new line snippets are defined in |yasnippets-file|
+("~/.vim/snippets.rb" by default).  To define |keyword-snippets| use this
+command: >
+    defsnippet 'keyword', :filetype1, :filetype2, :filetypeN, 'snippet text'
+<
+"keyword" used to expand snippet.  By default you need type "keywordss" to
+expand snippet.  You may override this by |expand-command|.  From second
+argument you specify file types in which this snippet works (it needs at least
+one file type); ":all" is used for all file types.  The last argument is the
+text of this snippet.  It may contain special markers (|snippet-markers|) and
+vim commands such as: >
+		'\<c-r>=strftime(\"%Y.%m.%d %H:%M\")\<cr>'
+<
+You may specify snippet text with more then one line. >
+		defsnippet 'main', :c, :cpp, %q[
+		int
+		main(int argc, char *argv[])
+		{
+		<++>
+
+		return 0;
+		}
+		]
+<
+"<++>" is |snippet-markers|. You don't need to indent this code snippet, it
+will be indented by vim.  But in this example vim indents "return 0;" line
+wrongly, because there is no ";" before this line.  To prevent this behaviour
+use "^^^" before end of line to indent next line in the same way. >
+		defsnippet 'main', :c, :cpp, %q[
+		int
+		main(int argc, char *argv[])
+		{
+		<++>^^^
+		^^^
+		return 0;
+		}
+		]
+<
+To define |newline-snippets| use this: >
+    defnlsnippet 'left___right', :filetype1, :filetypeN, 'snippet text'
+<
+When you press <Enter> (or |yasnippets-nlkey|) current line divided by cursor
+position on left part and part side.  First argument is two regular
+expressions joined by "___".  If these two regular expressions matching with
+corresponding parts of string, then the text of this snippet will be inserted
+in new line.  Else normal <Enter> will be inserted.  To get expected behaviour
+use |snippet-markers|.  When newline snippet inserted, cursor automatically
+jumps to the marker within this snippet.  This is definition of snippets
+described in above example: >
+	defnlsnippet '^#include <___>', :c, :cpp, '#include <<+header+>>'
+	defnlsnippet '^#include "___"', :c, :cpp, '#include \"<+header+>\"'
+<
+Also you may redefine "___" delimiter by this command: >
+	setdelimeter '|||'
+<
+
+
+							      *expand-command*
+By default, to expand snippet you must type keyword with "ss" at the end.  To
+redefine this behaviour use this command: >
+		expand 'keyword`'
+<
+Where argument must contain "keyword". It will be substituted with real
+keyword.  Perhaps you have snippet with keyword "for".  Now you can type
+"for`" to expand this snippet.  Also you may define group of snippets with
+their own expand behaviour: >
+		expand 'keyword[' do
+		    defsnippet 'pa', :ruby, :eruby, 'params[:<++>]'
+		    defsnippet 'rq', :ruby, :eruby, 'request[:<++>]'
+		    defsnippet 'rs', :ruby, :eruby, 'response[:<++>]'
+		end
+<
+This is not affect to the rest snippets.  To expand snippets by their keywords
+without any other symbols simply use following: >
+		expand 'keyword'
+<
+Or you may want to use "keyword " (with space at the end).  Then snippets will
+be expanded after you press <Space>.
+
+
+							     *snippet-markers*
+Markers used to put cursor in the appropriate position within inserted
+snippet.  Also snippet may contain more than one marker.  Jumping to the next
+marker perform by <C-j> key (or |yasnippets-jump|).  Markers within snippets
+file and skeleton files are defining with "<++>" sequence.  The look of
+markers in your editing buffer may differ, see |yasnippets-markers|.  They may
+be named ("<++>") and unnamed (such as "<+name+>").  When the cursor jumps to
+the unnamed marker, then it will be erased.  Else when the cursor jumps to the
+named marker, then this marker will be selected, and when you type something,
+it will be erased.  Perhaps you have following snippet: >
+		defsnippet 'for', :c, :cpp, %q[
+		for (<+init+>; <+cond+>; <+step+>)
+		{
+		<++>
+		}
+		]
+<
+When you type "forss", cursor will jump to first marker ("init"). Then you may
+write "i = 0" and press <C-j>.  Now the cursor is at "cond" marker.
+
+
+							  *defining-skeletons*
+To use |file-skeletons| you must have "skeletons" directory in your
+'runtimepath' (usually "~/.vim/skeletons").  Each skeleton is separate file in
+this directory.  The name of each skeleton must begins with file type.  After
+file type may be description precedes with "-".  If instead of file type you
+write "all", then this skeleton will be actual for all file types (description
+is necessarily; also you may limit action of skeleton by file name).  Some
+examples: >
+		c-header    -- Skeleton for C files with description "header"
+		ruby	    -- Skeleton for ruby files with no description
+		all-desc    -- Skeleton for all file types with description
+				"desc"
+<
+Each skeleton processes by ERb (see manpage for "erb"), and result is writing
+to the buffer.  Within skeleton you may use "filename" variable for name of
+created file, and ask method (see |skeleton-ask|).  Example for C header file:
+>
+  <%= copyright_and_license_c -%>
+  #ifndef __<%= f = File.basename(filename).upcase.gsub(/[^A-Z0-9]/, "_") %>__
+  #define __<%= f %>__
+
+
+  <++>
+
+
+  #endif /* __<%= f %>__ */
+  /* delete_line, filematch: {{/.*\.h$/}}, vim: set ft=eruby: */
+<
+First string uses method "copyright_and_license_c" which defined in
+|skeletons-shared|.  Last line contain "delete_line", and it will be skipped.
+Also last line contain "filematch" which limit skeleton by file name regular
+expression.  This statement must be in format described below: >
+		filematch: {{/regular_expression/}}
+<
+Regular expression exclude all files that doesn't match to it.  In above
+example, skeleton expands only to files with ".h" extension.
+
+
+							    *skeletons-shared*
+You may write shared code to "shared.rb" file in "skeletons" directory.  For
+example, following method inserts shebang string: >
+		def shebang
+		    "#!/usr/bin/env #{VIM::evaluate("&filetype").downcase}"
+		end
+<
+Then define new skeleton: >
+		<%= shebang %>
+
+		<++>
+<
+
+
+								*skeleton-ask*
+In some cases you may need to ask about inserting some piece of text.  For
+this thing, method "ask" is available: >
+		ask "Question?" do
+		    # some code
+		end
+<
+When you create new file, you will see following string: >
+		Question? [y/n/a]
+<
+You may answer "yes", "no", or "all".  If you answer "all", then all next
+answers will be positive.
+Example of using "ask" method: >
+		<% ask "Include header?" do -%>
+		#include "<%= File.basename(filename).sub(/\.c$/, '.h') %>"
+		<% end -%>
+<
+
+
+							 *yasnippets-settings*
+    *yasnippets-file*
+Default file for snippets is "~/.vim/snippets.rb".  To change this, put
+following line to your |vimrc|: >
+		let g:yasnippets_file = "~/.vim_snippets"
+<
+
+    *yasnippets-nlkey*
+By default |newline-snippets| are inserts when you hit <Enter>.  To change
+this key, put following lines to your |vimrc|: >
+    let g:yasnippets_nlkey = "<C-L>"
+    let g:yasnippets_nlkey_insert = "\<cr>"
+<
+When there is no snippet to insert, the value of "g:yasnippets_nlkey_insert"
+will be inserted to a buffer (in above example symbol <CR>, which is equal to
+key <Enter>).  If you don't want insert anything, assign it to "" (empty
+string).
+
+    *yasnippets-jump*
+By default jumping to the next marker are performed by pressing <C-j>.  To
+change this key, put following lines to your |vimrc|: >
+    imap <C-l> <Plug>IMAP_JumpForward
+    nmap <C-l> <Plug>IMAP_JumpForward
+    vmap <C-l> <Plug>IMAP_JumpForward
+<
+
+------------------------------------------------------------------------------
+ vim:tw=78:fo=tcq2:isk=@,!-~,^*,^\|,^\":ts=8:ft=help:norl:
